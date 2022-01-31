@@ -1,11 +1,33 @@
-const { response } = require('express')
 const express = require('express')
+const { initializeApp, cert} = require('firebase-admin/app')
+const { getFirestore } = require('firebase-admin/firestore')
+
+const credentials = require('../credentials.json')
+
+initializeApp({
+    credential: cert(credentials)
+})
+
+const db = getFirestore()
 
 const app = express()
 app.use(express.json())
 
 app.get('/', (request, response) => {
-    response.send('Hello World!')
+    const usersRef = db.collection('users')
+    usersRef
+    .get()
+    .then(snapshot => {
+        const users = []
+        snapshot.forEach(doc => {
+            users.push({
+                id: doc.id,
+                ...doc.data()
+            })
+        })
+        response.send(users)
+    })
+    //response.send('Hello World!')
 })
 
 app.post('/users', (req, res) => {
